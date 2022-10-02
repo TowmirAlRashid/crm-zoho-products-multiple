@@ -20,6 +20,9 @@ function App() {
     }
   });
 
+  const watchResult = watch("test");
+  console.log(watchResult);
+
   const { fields, append, remove } = useFieldArray(  //field array that controls each row
     {
       control,
@@ -76,15 +79,19 @@ function App() {
           Add New Products
         </Typography>
 
-        <Paper sx={{
-          width: "100%",
-          overflowX: "auto",
-          margin: '2rem auto'
-        }}>
-          <Table sx={{ width: '100%' }}>
+        <Paper
+          sx={{
+            width: "100%",
+            overflowX: "auto",
+            margin: "2rem auto",
+          }}
+        >
+          <Table sx={{ width: "100%" }}>
             <TableHead>
               <TableRow>
-                <TableCell align="left" sx={{ width: '300px'}}>Product Item</TableCell>
+                <TableCell align="left" sx={{ width: "300px" }}>
+                  Product Item
+                </TableCell>
                 <TableCell align="left">Unit Price ($)</TableCell>
                 <TableCell align="left">Product Code</TableCell>
                 <TableCell align="left">Quantity</TableCell>
@@ -93,104 +100,132 @@ function App() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {
-                fields.map((row, index) => {
-                  return (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <Controller
-                          name={`test[${index}].Product_Name`}
-                          control={control}
-                          defaultValue={row.Product_Name} 
-                          //onChange={(_, data) => data}
-                          render={({ onchange, ...props }) => (
-                            <Autocomplete 
-                              disablePortal
-                              options={availableProducts?.map(product => product?.Product_Name)}
-                              renderInput={(params) => <TextField {...params} label='Product Names' />}
-                              onChange={(e, value) => {
-                                setProductId(availableProducts?.filter(product => product?.Product_Name === value)?.[0]?.id)
-                              }}
-                              {...props}
-                            />
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Controller
-                            name={`test[${index}].Unit_Price`}
-                            control={control}
-                            defaultValue={row.Unit_Price} 
-                            //onChange={(_, data) => data}
-                            render={({ onchange, ...props }) => (
-                              <TextField 
-                                variant="standard"
-                                defaultValue={`${row.Unit_Price}`}
-                                {...props}
+              {fields.map((row, index) => {
+                return (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <Controller
+                        name={`test[${index}].Product_Name`}
+                        control={control}
+                        render={({ ...props }) => (
+                          <Autocomplete
+                            disablePortal
+                            options={availableProducts?.map(
+                              (product) => product?.Product_Name
+                            )}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Product Names"
+                                {...register(`test[${index}].Product_Name`)}
                               />
                             )}
+                            onChange={(e, value) => {
+                              setProductId(
+                                availableProducts?.filter(
+                                  (product) => product?.Product_Name === value
+                                )?.[0]?.id
+                              );
+                            }}
+                            {...props}
                           />
-                      </TableCell>
-                      <TableCell>
-                        <Controller
-                            name={`test[${index}].Product_Code`}
-                            control={control}
-                            defaultValue={row.Product_Code} 
-                            //onChange={(_, data) => data}
-                            render={({ onchange, ...props }) => (
-                              <TextField 
-                                variant="standard"
-                                defaultValue={`${row.Product_Code}`}
-                                {...props}
-                              />
-                            )}
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`test[${index}].Unit_Price`}
+                        control={control}
+                        render={({ ...props }) => (
+                          <TextField
+                            variant="standard"
+                            {...props}
+                            {...register(`test[${index}].Unit_Price`)}
                           />
-                      </TableCell>
-                      <TableCell>
-                        <Controller
-                            name={`test[${index}].Quantity`}
-                            control={control}
-                            defaultValue={row.Quantity} 
-                            //onChange={(_, data) => data}
-                            render={({ onchange, ...props }) => (
-                              <TextField 
-                                variant="standard"
-                                defaultValue={`${row.Quantity}`}
-                                {...props}
-                              />
-                            )}
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`test[${index}].Product_Code`}
+                        control={control}
+                        render={({ ...props }) => (
+                          <TextField
+                            variant="standard"
+                            {...props}
+                            {...register(`test[${index}].Product_Code`)}
                           />
-                      </TableCell>
-                      <TableCell>
-                        <Controller
-                            name={`test[${index}].Total`}
-                            control={control} 
-                            //onChange={(_, data) => data}
-                            render={({ onchange, ...props }) => (
-                              <TextField 
-                                variant="standard"
-                                sx={{pointerEvents: 'none'}}
-                                {...props}
-                                value={console.log((watch(fields?.[index]?.Unit_Price) || 0, watch(fields?.[index]?.Quantity) || 0))}
-                              />
-                            )}
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`test[${index}].Quantity`}
+                        control={control}
+                        defaultValue={row.Quantity}
+                        //onChange={(_, data) => data}
+                        render={({ onchange, ...props }) => (
+                          <TextField
+                            variant="standard"
+                            defaultValue={`${row.Quantity}`}
+                            {...props}
+                            {...register(`test[${index}].Quantity`)}
                           />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant='contained'
-                          onClick={() => remove(index)}
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              }
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`test[${index}].Total`}
+                        control={control}
+                        render={({ onchange, ...props }) => (
+                          <TextField
+                            variant="standard"
+                            sx={{ pointerEvents: "none" }}
+                            {...props}
+                            {...register(`test[${index}].Total`)}
+                            // value={console.log((watch(fields?.[index]?.Unit_Price) || 0, watch(fields?.[index]?.Quantity) || 0))}
+                          />
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="contained" onClick={() => remove(index)}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Paper>
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              append({
+                Product_Item: {},
+                Unit_Price: 0,
+                Product_Name: "",
+                Product_Code: "",
+                Quantity: 0,
+                Total: "",
+              });
+            }}
+          >
+            Add Another Product
+          </Button>
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            type="submit"
+          >{`Add ${
+            fields?.length > 1 ? "these" : "this"
+          } ${fields?.length > 1 ? 'Products' : 'Product'}?`}</Button>
+        </Box>
       </Box>
     </div>
   );
