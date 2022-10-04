@@ -12,15 +12,13 @@ function App() {
   const [contactSubform, setContactSubform] = useState([]) //subform of contatcts module that holds the product list
   const [availableProducts, setAvailableProducts] = useState([]) //available product list taken from products module
 
+  // { Product_Item: null, Currency_1: 0, Product_Code: "", Quantity: 0, Total: ""  }
 
   const { control, watch, handleSubmit,  setValue } = useForm({ //creating the default form
     defaultValues: {
-      test: [{ Product_Item: null, Currency_1: 0, Product_Code: "", Quantity: 0, Total: ""  }]
+      test: contactSubform?.length > 0 ? contactSubform : [{ Product_Item: null, Currency_1: 0, Product_Code: "", Quantity: 0, Total: ""  }]
     }
   });
-
-  // const watchResult = watch("test");
-  // console.log(watchResult);
 
   const { fields, append, remove } = useFieldArray(  //field array that controls each row
     {
@@ -29,9 +27,8 @@ function App() {
     }
   );
 
-
-const stage = watch();
-
+ 
+  const stage = watch();
 
   useEffect(() => {  //rendered once during widget first load
     ZOHO.embeddedApp.on("PageLoad", function (data) {
@@ -51,7 +48,8 @@ const stage = watch();
     if (entity && entityId) {
       ZOHO.CRM.API.getRecord({Entity: entity, RecordID: entityId})
       .then(function(data){
-        setContactSubform(data?.data?.[0]?.Submform_of_Contacts)
+        setContactSubform(data?.data?.[0]?.Submform_of_Contacts);
+        setValue("test", (data?.data?.[0]?.Submform_of_Contacts?.length > 0 ? data?.data?.[0]?.Submform_of_Contacts : [{ Product_Item: null, Currency_1: 0, Product_Code: "", Quantity: 0, Total: ""  }]));
       })
 
       ZOHO.CRM.API.getAllRecords({Entity:"Products",sort_order:"asc"})
@@ -59,31 +57,18 @@ const stage = watch();
         setAvailableProducts(data?.data)
       })
     }
-  }, [initialized, entity, entityId])
+  }, [initialized, entity, entityId, setValue])
+
+  
 
   const onSubmit = (data) => {
-
     if (entity && entityId) {
-      // let dataArr = fields?.map((newProduct) => {
-      //   return {
-      //     Product_Item: {
-      //       id: availableProducts?.filter(
-      //         (product) => product?.Product_Name === newProduct.Product_Name
-      //       )?.[0]?.id
-      //     },
-      //     Currency_1: newProduct.Unit_Price,
-      //     Product_Code: newProduct.Product_Code,
-      //     Quantity: newProduct.Quantity,
-      //     Total: newProduct.Total
-      //   }
-      // })
-      // console.log(`data array is ${JSON.stringify(dataArr)}`)
       var config={
         Entity: "Contacts",
         APIData:{
           id: entityId,
           Submform_of_Contacts: [
-            ...contactSubform, ...data.test
+            ...data.test
           ]
         },
         Trigger:["workflow"]
@@ -107,7 +92,6 @@ const stage = watch();
       <Box
         onSubmit={handleSubmit(onSubmit)}
         component="form"
-
         noValidate
         sx={{
           width: "90%",
@@ -115,9 +99,8 @@ const stage = watch();
         }}
       >
         <Typography sx={{ textAlign: "center", mb: "2rem" }} variant="h6">
-          Add New Products
+          Handle all the products of this Contact here!
         </Typography>
-         
         <Paper
           sx={{
             width: "100%",
@@ -139,7 +122,8 @@ const stage = watch();
               </TableRow>
             </TableHead>
             <TableBody>
-              {fields.map((row, index) => {
+              {
+                fields.map((row, index) => {
                 return (
                   <TableRow key={row.id}>
                     <TableCell>
@@ -152,10 +136,14 @@ const stage = watch();
                               {...field}
                               disablePortal
                               options={availableProducts?.map(
-                                (product) => {return {name: product.Product_Name, id: product.id}}
+                                (product) => {return {name: product.Product_Name, id: product.id, Currency_1: product.Unit_Price, Product_Code: product.Product_Code}}
                               )}
                               getOptionLabel={(option) => option.name}
-                              onChange={(_, data) => field.onChange(data)}
+                              onChange={(_, data) => {
+                                field.onChange({ name: data?.name, id: data?.id})
+                                setValue(`test[${index}].Currency_1`, data?.Currency_1)
+                                setValue(`test[${index}].Product_Code`, data?.Product_Code)
+                              }}
                               renderInput={(params) => (
                                 <TextField
                                   {...params}
@@ -174,6 +162,7 @@ const stage = watch();
                         render={({ field }) => (
                           <TextField
                             variant="standard"
+                            sx={{ pointerEvents: "none" }}
                             {...field}
                           />
                         )}
@@ -186,11 +175,11 @@ const stage = watch();
                         render={({ field }) => (
                           <TextField
                             variant="standard"
+                            sx={{ pointerEvents: "none" }}
                             {...field}
                           />
                         )}
                       />
-                      {/* setValue(`test[${index}].Total`, priceTotal(row?.Quantity, row?.Unit_Price)) */}
                     </TableCell>
                     <TableCell>
                       <Controller
@@ -214,7 +203,6 @@ const stage = watch();
                             variant="standard"
                             sx={{ pointerEvents: "none" }}
                             {...field}
-                            // value={priceTotal(row?.Quantity * row?.Unit_Price)}
                           />
                         )}
                       />
@@ -252,9 +240,7 @@ const stage = watch();
           <Button
             type="submit"
             variant="contained"
-          >{`Add ${
-            fields?.length > 1 ? "these" : "this"
-          } ${fields?.length > 1 ? 'Products' : 'Product'}?`}</Button>
+          >{`Update the ${fields?.length > 1 ? 'Products' : 'Product'} list?`}</Button>
         </Box>
       </Box>
     </div>
